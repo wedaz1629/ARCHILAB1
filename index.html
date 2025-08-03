@@ -1,0 +1,991 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lab Cassette Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta property="og:title" content="Lab Cassette Tracker">
+  <meta property="og:description" content="Built with Magic Loops">
+  <meta property="og:image" content="https://magicloops.dev/images/preview.png">
+  <meta property="og:url" content="https://lab-cassette-tracker.magicloops.app">
+  <meta name="twitter:card" content="https://magicloops.dev/images/preview.png">
+  <style>
+    body {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100vh;
+    }
+    .hidden-iframe {
+      display: none; /* keep hidden for silent refresh */
+      width: 0; height: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- 
+    The main application content is in an <iframe> 
+    with user-generated HTML (appData.html).
+  -->
+  <iframe 
+    srcdoc='&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;es&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;title&gt;ARCHILAB - Seguimiento de Casetes y Láminas&lt;/title&gt;
+  
+  &lt;!-- TailwindCSS --&gt;
+  &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+  
+  &lt;!-- Font Awesome --&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css&quot;&gt;
+  
+  &lt;!-- Google Fonts --&gt;
+  &lt;link href=&quot;https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;family=Comfortaa:wght@400;600&amp;display=swap&quot; rel=&quot;stylesheet&quot;&gt;
+  
+  &lt;!-- SweetAlert2 for beautiful alerts --&gt;
+  &lt;script src=&quot;https://cdn.jsdelivr.net/npm/sweetalert2@11&quot;&gt;&lt;/script&gt;
+  
+  &lt;style id=&quot;app-style&quot;&gt;
+    body {
+      font-family: &#039;Quicksand&#039;, sans-serif;
+      background-color: #f0f9ff;
+      color: #1e293b;
+    }
+    
+    h1, h2, h3, h4 {
+      font-family: &#039;Comfortaa&#039;, cursive;
+    }
+    
+    .btn {
+      @apply px-4 py-2 rounded-lg font-medium transition duration-200;
+    }
+    
+    .btn-primary {
+      @apply bg-indigo-500 text-white hover:bg-indigo-600;
+    }
+    
+    .btn-secondary {
+      @apply bg-amber-500 text-white hover:bg-amber-600;
+    }
+    
+    .btn-ghost {
+      @apply bg-transparent text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700;
+    }
+    
+    .card {
+      @apply bg-white rounded-xl shadow-md p-6 transition duration-300 hover:shadow-lg;
+    }
+    
+    .input-field {
+      @apply border border-gray-300 rounded-lg px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-300;
+    }
+    
+    .label {
+      @apply text-sm font-medium text-gray-600 mb-1 block;
+    }
+    
+    .table-container {
+      @apply overflow-x-auto rounded-lg border border-gray-200;
+    }
+    
+    table {
+      @apply w-full text-left;
+    }
+    
+    th {
+      @apply bg-gray-50 px-4 py-3 text-gray-600 font-medium;
+    }
+    
+    td {
+      @apply px-4 py-3 border-t border-gray-100;
+    }
+    
+    tr:hover {
+      @apply bg-indigo-50;
+    }
+    
+    .tag {
+      @apply inline-flex items-center rounded-full px-3 py-1 text-sm font-medium;
+    }
+    
+    .history-item {
+      @apply border-l-2 border-indigo-400 pl-4 py-2 my-2;
+    }
+    
+    .animate-pulse-light {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+
+&lt;body class=&quot;min-h-screen flex flex-col&quot;&gt;
+  &lt;!-- Header --&gt;
+  &lt;header class=&quot;bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-4 px-6 shadow-md&quot;&gt;
+    &lt;div class=&quot;container mx-auto flex justify-between items-center&quot;&gt;
+      &lt;div class=&quot;flex items-center space-x-3&quot;&gt;
+        &lt;i class=&quot;fas fa-flask text-2xl&quot;&gt;&lt;/i&gt;
+        &lt;h1 class=&quot;text-2xl font-bold&quot;&gt;ARCHILAB&lt;/h1&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;text-sm&quot;&gt;
+        &lt;span class=&quot;opacity-75&quot;&gt;Seguimiento de casetes y láminas&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/header&gt;
+  
+  &lt;!-- Main Content --&gt;
+  &lt;main class=&quot;flex-grow container mx-auto px-4 py-8 md:px-6&quot;&gt;
+    &lt;div class=&quot;grid grid-cols-1 lg:grid-cols-12 gap-6&quot;&gt;
+      
+      &lt;!-- Sidebar - Search &amp; Filters --&gt;
+      &lt;div class=&quot;lg:col-span-3 order-2 lg:order-1&quot;&gt;
+        &lt;div class=&quot;card mb-6&quot;&gt;
+          &lt;h2 class=&quot;text-xl font-bold mb-4 flex items-center&quot;&gt;
+            &lt;i class=&quot;fas fa-search mr-2 text-indigo-500&quot;&gt;&lt;/i&gt;
+            Buscar
+          &lt;/h2&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label for=&quot;search&quot; class=&quot;label&quot;&gt;Buscar por ID&lt;/label&gt;
+            &lt;div class=&quot;relative&quot;&gt;
+              &lt;input type=&quot;text&quot; id=&quot;search&quot; class=&quot;input-field pl-10&quot; placeholder=&quot;Ingrese ID...&quot;&gt;
+              &lt;i class=&quot;fas fa-search absolute left-3 top-3 text-gray-400&quot;&gt;&lt;/i&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label for=&quot;location-filter&quot; class=&quot;label&quot;&gt;Filtrar por ubicación&lt;/label&gt;
+            &lt;select id=&quot;location-filter&quot; class=&quot;input-field&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;Todas las ubicaciones&lt;/option&gt;
+              &lt;option value=&quot;Archivo&quot;&gt;Archivo&lt;/option&gt;
+              &lt;option value=&quot;Histología&quot;&gt;Histología&lt;/option&gt;
+              &lt;option value=&quot;Extra Sistema&quot;&gt;Extra Sistema&lt;/option&gt;
+              &lt;option value=&quot;Biología Molecular&quot;&gt;Biología Molecular&lt;/option&gt;
+              &lt;option value=&quot;Citología&quot;&gt;Citología&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;mb-4&quot;&gt;
+            &lt;label class=&quot;label&quot;&gt;Tipo de item&lt;/label&gt;
+            &lt;div class=&quot;flex space-x-2&quot;&gt;
+              &lt;label class=&quot;inline-flex items-center&quot;&gt;
+                &lt;input type=&quot;checkbox&quot; checked class=&quot;rounded text-indigo-500 focus:ring-indigo-500&quot;&gt;
+                &lt;span class=&quot;ml-2&quot;&gt;Casetes&lt;/span&gt;
+              &lt;/label&gt;
+              &lt;label class=&quot;inline-flex items-center&quot;&gt;
+                &lt;input type=&quot;checkbox&quot; checked class=&quot;rounded text-indigo-500 focus:ring-indigo-500&quot;&gt;
+                &lt;span class=&quot;ml-2&quot;&gt;Láminas&lt;/span&gt;
+              &lt;/label&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          
+          &lt;button id=&quot;clear-filters&quot; class=&quot;btn btn-ghost w-full&quot;&gt;
+            &lt;i class=&quot;fas fa-undo-alt mr-2&quot;&gt;&lt;/i&gt;Limpiar filtros
+          &lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;card bg-amber-50 border border-amber-200&quot;&gt;
+          &lt;h2 class=&quot;text-lg font-semibold mb-3 text-amber-800&quot;&gt;
+            &lt;i class=&quot;fas fa-lightbulb mr-2 text-amber-600&quot;&gt;&lt;/i&gt;
+            Tip del día
+          &lt;/h2&gt;
+          &lt;p class=&quot;text-sm text-amber-700&quot;&gt;
+            Puedes hacer clic en &quot;Ver historial&quot; para visualizar todos los movimientos de un ítem específico.
+          &lt;/p&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      
+      &lt;!-- Main Content Area --&gt;
+      &lt;div class=&quot;lg:col-span-9 order-1 lg:order-2&quot;&gt;
+        &lt;!-- Add Item Form --&gt;
+        &lt;div class=&quot;card mb-6&quot;&gt;
+          &lt;h2 class=&quot;text-xl font-bold mb-4 flex items-center&quot;&gt;
+            &lt;i class=&quot;fas fa-plus-circle mr-2 text-indigo-500&quot;&gt;&lt;/i&gt;
+            Registrar movimiento
+          &lt;/h2&gt;
+          
+          &lt;div class=&quot;grid grid-cols-1 md:grid-cols-3 gap-4&quot;&gt;
+            &lt;div&gt;
+              &lt;label for=&quot;item-id&quot; class=&quot;label&quot;&gt;ID del ítem*&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;item-id&quot; class=&quot;input-field&quot; placeholder=&quot;Seleccione o ingrese un ID...&quot; list=&quot;item-id-list&quot;&gt;
+              &lt;datalist id=&quot;item-id-list&quot;&gt;
+                &lt;!-- Options will be populated by JavaScript --&gt;
+              &lt;/datalist&gt;
+            &lt;/div&gt;
+            
+            &lt;div&gt;
+              &lt;label for=&quot;item-type&quot; class=&quot;label&quot;&gt;Tipo*&lt;/label&gt;
+              &lt;select id=&quot;item-type&quot; class=&quot;input-field&quot;&gt;
+                &lt;option value=&quot;casete&quot;&gt;Casete&lt;/option&gt;
+                &lt;option value=&quot;lamina&quot;&gt;Lámina&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            
+            &lt;div&gt;
+              &lt;label for=&quot;item-location&quot; class=&quot;label&quot;&gt;Ubicación*&lt;/label&gt;
+              &lt;select id=&quot;item-location&quot; class=&quot;input-field&quot;&gt;
+                &lt;option value=&quot;&quot;&gt;Seleccione una ubicación...&lt;/option&gt;
+                &lt;option value=&quot;Archivo&quot;&gt;Archivo&lt;/option&gt;
+                &lt;option value=&quot;Histología&quot;&gt;Histología&lt;/option&gt;
+                &lt;option value=&quot;Extra Sistema&quot;&gt;Extra Sistema&lt;/option&gt;
+                &lt;option value=&quot;Biología Molecular&quot;&gt;Biología Molecular&lt;/option&gt;
+                &lt;option value=&quot;Citología&quot;&gt;Citología&lt;/option&gt;
+              &lt;/select&gt;
+            &lt;/div&gt;
+            
+            &lt;div&gt;
+              &lt;label for=&quot;item-person&quot; class=&quot;label&quot;&gt;Movido por*&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;item-person&quot; class=&quot;input-field&quot; placeholder=&quot;Nombre de la persona&quot;&gt;
+            &lt;/div&gt;
+            
+            &lt;div&gt;
+              &lt;label for=&quot;item-notes&quot; class=&quot;label&quot;&gt;Notas&lt;/label&gt;
+              &lt;input type=&quot;text&quot; id=&quot;item-notes&quot; class=&quot;input-field&quot; placeholder=&quot;Observaciones (opcional)&quot;&gt;
+            &lt;/div&gt;
+            
+            &lt;div class=&quot;flex items-end&quot;&gt;
+              &lt;button id=&quot;submit-item&quot; class=&quot;btn btn-primary w-full&quot;&gt;
+                &lt;i class=&quot;fas fa-save mr-2&quot;&gt;&lt;/i&gt;Guardar
+              &lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- Items Table --&gt;
+        &lt;div class=&quot;card&quot;&gt;
+          &lt;div class=&quot;flex justify-between items-center mb-4&quot;&gt;
+            &lt;h2 class=&quot;text-xl font-bold flex items-center&quot;&gt;
+              &lt;i class=&quot;fas fa-list-ul mr-2 text-indigo-500&quot;&gt;&lt;/i&gt;
+              Ítems registrados
+            &lt;/h2&gt;
+            &lt;span class=&quot;tag bg-indigo-100 text-indigo-800&quot; id=&quot;items-count&quot;&gt;0 ítems&lt;/span&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;table-container&quot;&gt;
+            &lt;table class=&quot;min-w-full&quot;&gt;
+              &lt;thead&gt;
+                &lt;tr&gt;
+                  &lt;th&gt;ID&lt;/th&gt;
+                  &lt;th&gt;Tipo&lt;/th&gt;
+                  &lt;th&gt;Ubicación actual&lt;/th&gt;
+                  &lt;th&gt;Última actualización&lt;/th&gt;
+                  &lt;th&gt;Registrado por&lt;/th&gt;
+                  &lt;th class=&quot;text-right&quot;&gt;Acciones&lt;/th&gt;
+                &lt;/tr&gt;
+              &lt;/thead&gt;
+              &lt;tbody id=&quot;items-table-body&quot;&gt;
+                &lt;tr&gt;
+                  &lt;td colspan=&quot;6&quot; class=&quot;text-center py-8 text-gray-400&quot;&gt;
+                    &lt;i class=&quot;fas fa-info-circle mr-2&quot;&gt;&lt;/i&gt;
+                    No hay ítems registrados. Registra un nuevo ítem para comenzar.
+                  &lt;/td&gt;
+                &lt;/tr&gt;
+              &lt;/tbody&gt;
+            &lt;/table&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/main&gt;
+  
+  &lt;!-- History Modal --&gt;
+  &lt;div id=&quot;history-modal&quot; class=&quot;fixed inset-0 z-50 hidden&quot;&gt;
+    &lt;div class=&quot;absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;relative max-w-2xl mx-auto mt-20 bg-white rounded-xl shadow-xl&quot;&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;flex justify-between items-center mb-6&quot;&gt;
+          &lt;h3 class=&quot;text-xl font-bold&quot;&gt;
+            &lt;i class=&quot;fas fa-history mr-2 text-indigo-500&quot;&gt;&lt;/i&gt;
+            Historial de movimientos
+          &lt;/h3&gt;
+          &lt;button id=&quot;close-modal&quot; class=&quot;text-gray-500 hover:text-gray-700 focus:outline-none&quot;&gt;
+            &lt;i class=&quot;fas fa-times text-xl&quot;&gt;&lt;/i&gt;
+          &lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;mb-4 flex items-center&quot;&gt;
+          &lt;div class=&quot;w-24 font-bold&quot;&gt;ID:&lt;/div&gt;
+          &lt;div id=&quot;modal-item-id&quot; class=&quot;tag bg-indigo-100 text-indigo-800&quot;&gt;C-001&lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;mb-6 flex items-center&quot;&gt;
+          &lt;div class=&quot;w-24 font-bold&quot;&gt;Tipo:&lt;/div&gt;
+          &lt;div id=&quot;modal-item-type&quot; class=&quot;tag bg-amber-100 text-amber-800&quot;&gt;Casete&lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div id=&quot;history-list&quot; class=&quot;max-h-80 overflow-y-auto pr-2&quot;&gt;
+          &lt;!-- History items will be added here --&gt;
+          &lt;div class=&quot;history-item&quot;&gt;
+            &lt;div class=&quot;flex justify-between&quot;&gt;
+              &lt;span class=&quot;font-semibold&quot;&gt;Laboratorio A&lt;/span&gt;
+              &lt;span class=&quot;text-sm text-gray-500&quot;&gt;25/06/2025, 14:30&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;text-sm mt-1&quot;&gt;Movido por: Juan Pérez&lt;/div&gt;
+            &lt;div class=&quot;text-sm italic text-gray-600 mt-1&quot;&gt;Análisis inicial&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Edit Modal --&gt;
+  &lt;div id=&quot;edit-modal&quot; class=&quot;fixed inset-0 z-50 hidden&quot;&gt;
+    &lt;div class=&quot;absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;relative max-w-2xl mx-auto mt-20 bg-white rounded-xl shadow-xl&quot;&gt;
+      &lt;div class=&quot;p-6&quot;&gt;
+        &lt;div class=&quot;flex justify-between items-center mb-6&quot;&gt;
+          &lt;h3 class=&quot;text-xl font-bold&quot;&gt;
+            &lt;i class=&quot;fas fa-edit mr-2 text-indigo-500&quot;&gt;&lt;/i&gt;
+            Modificar movimiento
+          &lt;/h3&gt;
+          &lt;button id=&quot;close-edit-modal&quot; class=&quot;text-gray-500 hover:text-gray-700 focus:outline-none&quot;&gt;
+            &lt;i class=&quot;fas fa-times text-xl&quot;&gt;&lt;/i&gt;
+          &lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;grid grid-cols-1 md:grid-cols-2 gap-4 mb-6&quot;&gt;
+          &lt;div&gt;
+            &lt;label for=&quot;edit-item-id&quot; class=&quot;label&quot;&gt;ID del ítem*&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;edit-item-id&quot; class=&quot;input-field&quot; readonly&gt;
+          &lt;/div&gt;
+          
+          &lt;div&gt;
+            &lt;label for=&quot;edit-item-type&quot; class=&quot;label&quot;&gt;Tipo*&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;edit-item-type&quot; class=&quot;input-field&quot; readonly&gt;
+          &lt;/div&gt;
+          
+          &lt;div&gt;
+            &lt;label for=&quot;edit-item-location&quot; class=&quot;label&quot;&gt;Ubicación*&lt;/label&gt;
+            &lt;select id=&quot;edit-item-location&quot; class=&quot;input-field&quot;&gt;
+              &lt;option value=&quot;&quot;&gt;Seleccione una ubicación...&lt;/option&gt;
+              &lt;option value=&quot;Archivo&quot;&gt;Archivo&lt;/option&gt;
+              &lt;option value=&quot;Histología&quot;&gt;Histología&lt;/option&gt;
+              &lt;option value=&quot;Extra Sistema&quot;&gt;Extra Sistema&lt;/option&gt;
+              &lt;option value=&quot;Biología Molecular&quot;&gt;Biología Molecular&lt;/option&gt;
+              &lt;option value=&quot;Citología&quot;&gt;Citología&lt;/option&gt;
+            &lt;/select&gt;
+          &lt;/div&gt;
+          
+          &lt;div&gt;
+            &lt;label for=&quot;edit-item-person&quot; class=&quot;label&quot;&gt;Movido por*&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;edit-item-person&quot; class=&quot;input-field&quot; placeholder=&quot;Nombre de la persona&quot;&gt;
+          &lt;/div&gt;
+          
+          &lt;div class=&quot;md:col-span-2&quot;&gt;
+            &lt;label for=&quot;edit-item-notes&quot; class=&quot;label&quot;&gt;Notas&lt;/label&gt;
+            &lt;input type=&quot;text&quot; id=&quot;edit-item-notes&quot; class=&quot;input-field&quot; placeholder=&quot;Observaciones (opcional)&quot;&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;div class=&quot;flex justify-end space-x-4&quot;&gt;
+          &lt;button id=&quot;cancel-edit&quot; class=&quot;btn btn-ghost&quot;&gt;
+            Cancelar
+          &lt;/button&gt;
+          &lt;button id=&quot;save-edit&quot; class=&quot;btn btn-primary&quot;&gt;
+            &lt;i class=&quot;fas fa-save mr-2&quot;&gt;&lt;/i&gt;Guardar cambios
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- Footer --&gt;
+  &lt;footer class=&quot;bg-indigo-800 text-white py-4 px-6&quot;&gt;
+    &lt;div class=&quot;container mx-auto text-center&quot;&gt;
+      &lt;p&gt;ARCHILAB &amp;copy; 2025 - Seguimiento simple y eficaz para tu laboratorio&lt;/p&gt;
+      &lt;div class=&quot;mt-2 text-indigo-200 text-sm&quot;&gt;
+        &lt;span&gt;Desarrollado con &lt;i class=&quot;fas fa-heart text-pink-400&quot;&gt;&lt;/i&gt; para facilitar tu trabajo&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/footer&gt;
+  
+  &lt;script id=&quot;app-script&quot;&gt;
+    document.addEventListener(&#039;DOMContentLoaded&#039;, () =&gt; {
+      // DOM Elements
+      const itemIdInput = document.getElementById(&#039;item-id&#039;);
+      const itemTypeSelect = document.getElementById(&#039;item-type&#039;);
+      const itemLocationInput = document.getElementById(&#039;item-location&#039;);
+      const itemPersonInput = document.getElementById(&#039;item-person&#039;);
+      const itemNotesInput = document.getElementById(&#039;item-notes&#039;);
+      const submitItemButton = document.getElementById(&#039;submit-item&#039;);
+      const itemsTableBody = document.getElementById(&#039;items-table-body&#039;);
+      const itemsCountElement = document.getElementById(&#039;items-count&#039;);
+      const searchInput = document.getElementById(&#039;search&#039;);
+      const locationFilter = document.getElementById(&#039;location-filter&#039;);
+      const clearFiltersButton = document.getElementById(&#039;clear-filters&#039;);
+      const historyModal = document.getElementById(&#039;history-modal&#039;);
+      const closeModalButton = document.getElementById(&#039;close-modal&#039;);
+      const modalItemId = document.getElementById(&#039;modal-item-id&#039;);
+      const modalItemType = document.getElementById(&#039;modal-item-type&#039;);
+      const historyList = document.getElementById(&#039;history-list&#039;);
+      const editModal = document.getElementById(&#039;edit-modal&#039;);
+      const closeEditModalButton = document.getElementById(&#039;close-edit-modal&#039;);
+      const cancelEditButton = document.getElementById(&#039;cancel-edit&#039;);
+      const saveEditButton = document.getElementById(&#039;save-edit&#039;);
+      const editItemIdInput = document.getElementById(&#039;edit-item-id&#039;);
+      const editItemTypeInput = document.getElementById(&#039;edit-item-type&#039;);
+      const editItemLocationInput = document.getElementById(&#039;edit-item-location&#039;);
+      const editItemPersonInput = document.getElementById(&#039;edit-item-person&#039;);
+      const editItemNotesInput = document.getElementById(&#039;edit-item-notes&#039;);
+      
+      // Populate the item ID datalist with the range from 180000 to 200000
+      function populateItemIdDropdown() {
+        // Get reference to the datalist
+        const itemIdList = document.getElementById(&#039;item-id-list&#039;);
+        
+        // Clear any existing options
+        itemIdList.innerHTML = &#039;&#039;;
+        
+        // Generate and add options for IDs from 180000 to 200000
+        // These are initial IDs available for movement registration, not pre-registered items
+        for (let i = 180000; i &lt;= 200000; i++) {
+          const option = document.createElement(&#039;option&#039;);
+          option.value = i.toString();
+          itemIdList.appendChild(option);
+        }
+      }
+      
+      // Local Storage Functions
+      const getItems = () =&gt; {
+        const items = localStorage.getItem(&#039;labTrackerItems&#039;);
+        return items ? JSON.parse(items) : [];
+      };
+      
+      const saveItems = (items) =&gt; {
+        localStorage.setItem(&#039;labTrackerItems&#039;, JSON.stringify(items));
+      };
+      
+      // Initialize application
+      let items = getItems();
+      populateItemIdDropdown();
+      updateItemsTable();
+      updateItemsCount();
+      
+      // Event listeners
+      submitItemButton.addEventListener(&#039;click&#039;, addOrUpdateItem);
+      searchInput.addEventListener(&#039;input&#039;, updateItemsTable);
+      locationFilter.addEventListener(&#039;change&#039;, updateItemsTable);
+      clearFiltersButton.addEventListener(&#039;click&#039;, clearFilters);
+      closeModalButton.addEventListener(&#039;click&#039;, closeHistoryModal);
+      closeEditModalButton.addEventListener(&#039;click&#039;, closeEditModal);
+      cancelEditButton.addEventListener(&#039;click&#039;, closeEditModal);
+      saveEditButton.addEventListener(&#039;click&#039;, saveEditChanges);
+      
+      // Functions
+      function addOrUpdateItem() {
+        // Form validation
+        if (!itemIdInput.value || !itemLocationInput.value || !itemPersonInput.value) {
+          Swal.fire({
+            icon: &#039;warning&#039;,
+            title: &#039;Campos incompletos&#039;,
+            text: &#039;Por favor, completa todos los campos obligatorios (*)&#039;,
+            confirmButtonColor: &#039;#6366f1&#039;
+          });
+          return;
+        }
+        
+        const id = itemIdInput.value.trim();
+        const type = itemTypeSelect.value;
+        const location = itemLocationInput.value.trim();
+        const person = itemPersonInput.value.trim();
+        const notes = itemNotesInput.value.trim();
+        const timestamp = new Date();
+        
+        // Check if the item already exists - now comparing both id AND type
+        const existingItemIndex = items.findIndex(item =&gt; item.id === id &amp;&amp; item.type === type);
+        
+        if (existingItemIndex === -1) {
+          // Create new item
+          const newItem = {
+            id,
+            type,
+            history: [
+              {
+                location,
+                person,
+                notes,
+                timestamp
+              }
+            ]
+          };
+          
+          items.unshift(newItem);
+          
+          Swal.fire({
+            icon: &#039;success&#039;,
+            title: &#039;¡Ítem registrado!&#039;,
+            text: `El ítem ${id} (${type === &#039;casete&#039; ? &#039;Casete&#039; : &#039;Lámina&#039;}) ha sido registrado correctamente`,
+            confirmButtonColor: &#039;#6366f1&#039;
+          });
+        } else {
+          // Update existing item with new location
+          items[existingItemIndex].history.unshift({
+            location,
+            person,
+            notes,
+            timestamp
+          });
+          
+          // Move item to the top of the list
+          const updatedItem = items[existingItemIndex];
+          items.splice(existingItemIndex, 1);
+          items.unshift(updatedItem);
+          
+          Swal.fire({
+            icon: &#039;success&#039;,
+            title: &#039;¡Movimiento registrado!&#039;,
+            text: `El movimiento del ítem ${id} (${type === &#039;casete&#039; ? &#039;Casete&#039; : &#039;Lámina&#039;}) ha sido registrado correctamente`,
+            confirmButtonColor: &#039;#6366f1&#039;
+          });
+        }
+        
+        // Save items and update UI
+        saveItems(items);
+        updateItemsTable();
+        updateItemsCount();
+        clearForm();
+      }
+      
+      function updateItemsTable() {
+        let filteredItems = items;
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const locationTerm = locationFilter.value;
+        
+        // Apply filters
+        if (searchTerm) {
+          filteredItems = filteredItems.filter(item =&gt; 
+            item.id.toLowerCase().includes(searchTerm)
+          );
+        }
+        
+        if (locationTerm) {
+          filteredItems = filteredItems.filter(item =&gt; 
+            item.history[0].location === locationTerm
+          );
+        }
+        
+        // Clear table
+        itemsTableBody.innerHTML = &#039;&#039;;
+        
+        // Show message if no items
+        if (filteredItems.length === 0) {
+          const emptyRow = document.createElement(&#039;tr&#039;);
+          emptyRow.innerHTML = `
+            &lt;td colspan=&quot;6&quot; class=&quot;text-center py-8 text-gray-400&quot;&gt;
+              &lt;i class=&quot;fas fa-search mr-2&quot;&gt;&lt;/i&gt;
+              No se encontraron resultados
+            &lt;/td&gt;
+          `;
+          itemsTableBody.appendChild(emptyRow);
+          return;
+        }
+        
+        // Add items to table
+        filteredItems.forEach(item =&gt; {
+          const lastMove = item.history[0];
+          const date = new Date(lastMove.timestamp);
+          const formattedDate = date.toLocaleDateString(&#039;es-ES&#039;, {
+            day: &#039;2-digit&#039;,
+            month: &#039;2-digit&#039;,
+            year: &#039;numeric&#039;,
+            hour: &#039;2-digit&#039;,
+            minute: &#039;2-digit&#039;
+          });
+          
+          const row = document.createElement(&#039;tr&#039;);
+          row.innerHTML = `
+            &lt;td class=&quot;font-medium&quot;&gt;${item.id}&lt;/td&gt;
+            &lt;td&gt;
+              &lt;span class=&quot;tag ${item.type === &#039;casete&#039; ? &#039;bg-indigo-100 text-indigo-800&#039; : &#039;bg-amber-100 text-amber-800&#039;}&quot;&gt;
+                ${item.type === &#039;casete&#039; ? &#039;Casete&#039; : &#039;Lámina&#039;}
+              &lt;/span&gt;
+            &lt;/td&gt;
+            &lt;td&gt;${lastMove.location}&lt;/td&gt;
+            &lt;td&gt;${formattedDate}&lt;/td&gt;
+            &lt;td&gt;${lastMove.person}&lt;/td&gt;
+            &lt;td class=&quot;text-right&quot;&gt;
+              &lt;button class=&quot;btn btn-ghost py-1 px-2 view-history&quot; data-id=&quot;${item.id}&quot;&gt;
+                &lt;i class=&quot;fas fa-history mr-1&quot;&gt;&lt;/i&gt;
+                Ver historial
+              &lt;/button&gt;
+              &lt;button class=&quot;btn btn-ghost py-1 px-2 edit-movement&quot; data-id=&quot;${item.id}&quot; data-type=&quot;${item.type}&quot;&gt;
+                &lt;i class=&quot;fas fa-edit mr-1&quot;&gt;&lt;/i&gt;
+                Editar
+              &lt;/button&gt;
+            &lt;/td&gt;
+          `;
+          itemsTableBody.appendChild(row);
+          
+          // Add event listener to the new history button
+          row.querySelector(&#039;.view-history&#039;).addEventListener(&#039;click&#039;, () =&gt; {
+            showHistory(item);
+          });
+          
+          // Add event listener to the edit button
+          row.querySelector(&#039;.edit-movement&#039;).addEventListener(&#039;click&#039;, () =&gt; {
+            confirmEditMovement(item);
+          });
+        });
+      }
+      
+      function updateItemsCount() {
+        const count = items.length;
+        itemsCountElement.textContent = `${count} ítem${count !== 1 ? &#039;s&#039; : &#039;&#039;}`;
+      }
+      
+      function clearForm() {
+        itemIdInput.value = &#039;&#039;;
+        itemTypeSelect.value = &#039;casete&#039;;
+        itemLocationInput.value = &#039;&#039;;
+        itemPersonInput.value = &#039;&#039;;
+        itemNotesInput.value = &#039;&#039;;
+        itemIdInput.focus();
+      }
+      
+      function clearFilters() {
+        searchInput.value = &#039;&#039;;
+        locationFilter.value = &#039;&#039;;
+        updateItemsTable();
+      }
+      
+      function showHistory(item) {
+        // Set modal data
+        modalItemId.textContent = item.id;
+        modalItemType.textContent = item.type === &#039;casete&#039; ? &#039;Casete&#039; : &#039;Lámina&#039;;
+        modalItemType.className = `tag ${item.type === &#039;casete&#039; ? &#039;bg-indigo-100 text-indigo-800&#039; : &#039;bg-amber-100 text-amber-800&#039;}`;
+        
+        // Clear history list
+        historyList.innerHTML = &#039;&#039;;
+        
+        // Add history items
+        item.history.forEach((historyItem, index) =&gt; {
+          const date = new Date(historyItem.timestamp);
+          const formattedDate = date.toLocaleDateString(&#039;es-ES&#039;, {
+            day: &#039;2-digit&#039;,
+            month: &#039;2-digit&#039;,
+            year: &#039;numeric&#039;,
+            hour: &#039;2-digit&#039;,
+            minute: &#039;2-digit&#039;
+          });
+          
+          const historyElement = document.createElement(&#039;div&#039;);
+          historyElement.className = &#039;history-item&#039;;
+          historyElement.innerHTML = `
+            &lt;div class=&quot;flex justify-between&quot;&gt;
+              &lt;span class=&quot;font-semibold&quot;&gt;${historyItem.location}&lt;/span&gt;
+              &lt;span class=&quot;text-sm text-gray-500&quot;&gt;${formattedDate}&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div class=&quot;text-sm mt-1&quot;&gt;Movido por: ${historyItem.person}&lt;/div&gt;
+            ${historyItem.notes ? `&lt;div class=&quot;text-sm italic text-gray-600 mt-1&quot;&gt;${historyItem.notes}&lt;/div&gt;` : &#039;&#039;}
+            ${index === 0 ? &#039;&lt;div class=&quot;text-xs text-green-600 font-medium mt-2&quot;&gt;UBICACIÓN ACTUAL&lt;/div&gt;&#039; : &#039;&#039;}
+          `;
+          historyList.appendChild(historyElement);
+        });
+        
+        // Show modal
+        historyModal.classList.remove(&#039;hidden&#039;);
+      }
+      
+      function confirmEditMovement(item) {
+        Swal.fire({
+          title: &#039;¿Desea modificar este movimiento?&#039;,
+          icon: &#039;question&#039;,
+          showCancelButton: true,
+          confirmButtonText: &#039;Sí&#039;,
+          cancelButtonText: &#039;No&#039;,
+          confirmButtonColor: &#039;#6366f1&#039;
+        }).then((result) =&gt; {
+          if (result.isConfirmed) {
+            openEditModal(item);
+          }
+        });
+      }
+      
+      function openEditModal(item) {
+        currentEditItem = item;
+        
+        // Populate form fields with current values
+        editItemIdInput.value = item.id;
+        editItemTypeInput.value = item.type === &#039;casete&#039; ? &#039;Casete&#039; : &#039;Lámina&#039;;
+        editItemLocationInput.value = item.history[0].location;
+        editItemPersonInput.value = item.history[0].person;
+        editItemNotesInput.value = item.history[0].notes || &#039;&#039;;
+        
+        // Show modal
+        editModal.classList.remove(&#039;hidden&#039;);
+      }
+      
+      function closeEditModal() {
+        editModal.classList.add(&#039;hidden&#039;);
+        currentEditItem = null;
+      }
+      
+      function saveEditChanges() {
+        // Form validation
+        if (!editItemLocationInput.value || !editItemPersonInput.value) {
+          Swal.fire({
+            icon: &#039;warning&#039;,
+            title: &#039;Campos incompletos&#039;,
+            text: &#039;Por favor, completa todos los campos obligatorios (*)&#039;,
+            confirmButtonColor: &#039;#6366f1&#039;
+          });
+          return;
+        }
+        
+        if (currentEditItem) {
+          // Update the current history entry (most recent one)
+          currentEditItem.history[0].location = editItemLocationInput.value;
+          currentEditItem.history[0].person = editItemPersonInput.value;
+          currentEditItem.history[0].notes = editItemNotesInput.value;
+          
+          // Save items and update UI
+          saveItems(items);
+          updateItemsTable();
+          
+          // Show success message
+          Swal.fire({
+            icon: &#039;success&#039;,
+            title: &#039;¡Movimiento actualizado!&#039;,
+            text: `El movimiento del ítem ${currentEditItem.id} ha sido actualizado correctamente`,
+            confirmButtonColor: &#039;#6366f1&#039;
+          });
+          
+          closeEditModal();
+        }
+      }
+      
+      function closeHistoryModal() {
+        historyModal.classList.add(&#039;hidden&#039;);
+      }
+      
+      // Close modal when clicking outside
+      window.addEventListener(&#039;click&#039;, (e) =&gt; {
+        if (e.target === editModal) {
+          closeEditModal();
+        }
+        if (e.target === historyModal) {
+          closeHistoryModal();
+        }
+      });
+      
+      // Close modals with Escape key
+      window.addEventListener(&#039;keydown&#039;, (e) =&gt; {
+        if (e.key === &#039;Escape&#039;) {
+          if (!editModal.classList.contains(&#039;hidden&#039;)) {
+            closeEditModal();
+          }
+          if (!historyModal.classList.contains(&#039;hidden&#039;)) {
+            closeHistoryModal();
+          }
+        }
+      });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;' 
+    sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-downloads allow-popups allow-presentation">
+  </iframe>
+
+  <!-- Hidden iframe used for "silent" SSO attempts -->
+  <iframe 
+    id="silentAuthFrame" 
+    class="hidden-iframe"
+    sandbox="allow-same-origin allow-scripts allow-forms">
+  </iframe>
+
+  <script>
+    /**
+     * 1) On page load, we check if the subdomain JWT is valid.
+     * 2) If not valid, we attempt a SILENT login in a hidden iframe.
+     * 3) If silent login fails, we open a POPUP for a visible login.
+     * 4) We also schedule a token refresh before it expires.
+     */
+    (function(){
+      const VERIFY_ENDPOINT = '/api/auth/verify';
+      const SUBDOMAIN = window.location.host.split('.')[0] || 'blog'; 
+      // e.g. "app1" from "app1.magicloops.dev"
+
+      // Build the authorize URL to magicloops.dev
+      // This will generate a single-use code & redirect back to our callback
+      // "redirect_to" => subdomain callback, which sets our cookie
+      const AUTH_BASE = 'https://magicloops.dev/api/sso/authorize';
+      const LOGIN_BASE = 'https://magicloops.dev/login';
+      const CALLBACK_URL = `https://${window.location.host}/api/auth/callback`;
+      const authorizeUrl = new URL(AUTH_BASE);
+      authorizeUrl.searchParams.set('subdomain', SUBDOMAIN);
+      authorizeUrl.searchParams.set('redirect_to', CALLBACK_URL);
+      const loginUrl = new URL(AUTH_BASE);
+      loginUrl.searchParams.set('subdomain', SUBDOMAIN);
+      loginUrl.searchParams.set('redirect_to', CALLBACK_URL);
+
+      /**
+       * Make a GET request to /api/auth/verify to see if subdomain_jwt is valid.
+       * Returns { userId, exp } if OK, or 401 if missing/expired.
+       */
+      async function verifySession() {
+        const resp = await fetch(VERIFY_ENDPOINT, { method: 'GET' });
+        if (!resp.ok) {
+          throw new Error('Verify failed: ' + resp.status);
+        }
+        return await resp.json(); // { userId, exp }
+      }
+
+      /**
+       * Perform a "silent" SSO attempt by loading the authorize endpoint
+       * in a hidden iframe. If the main domain session is still valid,
+       * the user won't see a login prompt. On success, our callback sets the cookie.
+       *
+       * We'll wait for the iframe to load & then re-check our subdomain /verify.
+       */
+      async function doSilentAuth() {
+        return new Promise((resolve, reject) => {
+          const frame = document.getElementById('silentAuthFrame');
+          frame.src = authorizeUrl.toString();
+
+          // We'll listen to "load" event. Once it loads, we check /verify again.
+          frame.onload = async function() {
+            try {
+              const data = await verifySession();
+              resolve(data); // userId, exp
+            } catch (err) {
+              reject(err);
+            }
+          };
+
+          // Optional: handle error event
+          frame.onerror = () => {
+            reject(new Error('Hidden iframe load error'));
+          };
+        });
+      }
+
+      /**
+       * Open a popup with the magicloops.dev authorize URL.
+       * If the user needs to log in, they'll see the Supabase screen.
+       * Once the callback sets the JWT, we poll for closure & re-verify.
+       */
+      async function doPopupAuth() {
+        return new Promise((resolve, reject) => {
+          const popup = window.open(
+            loginUrl.toString(),
+            'authPopup',
+            'width=600,height=700'
+          );
+          if (!popup) {
+            return reject(new Error('Popup blocked'));
+          }
+
+          const timer = setInterval(async () => {
+            // If popup closed, check if we have a valid session
+            if (popup.closed) {
+              clearInterval(timer);
+              try {
+                const data = await verifySession();
+                resolve(data);
+              } catch (err) {
+                reject(err);
+              }
+            }
+          }, 500);
+        });
+      }
+
+      /**
+       * The main login flow attempt:
+       * 1) Try verifying subdomain_jwt
+       * 2) If missing/expired, attempt SILENT iframe
+       * 3) If silent fails => fallback to POPUP
+       */
+      async function ensureLoggedIn() {
+        try {
+          const info = await verifySession();
+          // Already valid. Return info { userId, exp }
+          return info;
+        } catch (err) {
+          // Not logged in or token expired
+          console.log('No valid subdomain JWT, attempting silent auth...');
+        }
+
+        // Attempt silent auth in hidden iframe
+        try {
+          const info = await doSilentAuth();
+          console.log('Silent auth success:', info);
+          return info;
+        } catch (err) {
+          console.warn('Silent auth failed, opening popup...');
+        }
+
+        // Fallback to popup
+        try {
+//          const info = await doPopupAuth();
+//          console.log('Popup auth success:', info);
+//          return info;
+        } catch (err) {
+          console.error('Popup login failed or canceled:', err);
+          throw err;
+        }
+      }
+
+      /**
+       * Schedule an automatic token refresh a bit before the token expires.
+       * For example, refresh 1 minute before exp or halfway—your choice.
+       */
+      function scheduleAutoRefresh(exp) {
+        // Current time in seconds
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        // Refresh 30 seconds before actual expiration, for safety
+        const refreshTime = Math.max((exp - 30) - nowSeconds, 1);
+        const refreshMs = refreshTime * 1000;
+
+        console.log('Scheduling refresh in', refreshTime, 'seconds');
+        setTimeout(async () => {
+          console.log('Attempting token refresh...');
+          try {
+            const info = await doSilentAuth();
+            console.log('Token silently refreshed:', info);
+            scheduleAutoRefresh(info.exp);
+          } catch (err) {
+            console.warn('Silent refresh failed, fallback to popup...');
+            // If silent refresh fails, we do popup to re-auth
+            try {
+//              const info = await doPopupAuth();
+//              console.log('Popup refresh success:', info);
+//              scheduleAutoRefresh(info.exp);
+            } catch (popErr) {
+              console.error('Popup refresh also failed. User not logged in:', popErr);
+            }
+          }
+        }, refreshMs);
+      }
+
+      // Now, run the main flow on page load
+      (async function main() {
+        try {
+console.log('Hello Magic App User!');
+          const info = await ensureLoggedIn();
+          console.log('User is logged in:', info);
+          // After we confirm a valid JWT, we schedule the refresh
+          scheduleAutoRefresh(info.exp);
+        } catch (err) {
+          console.error('User is not logged in and refused to log in:', err);
+          // Show a message or redirect if needed
+        }
+      })();
+
+    })();
+  </script>
+</body>
+</html>
