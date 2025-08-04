@@ -464,9 +464,34 @@
         return items ? JSON.parse(items) : [];
       };
       
-      const saveItems = (items) =&gt; {
-        localStorage.setItem(&#039;labTrackerItems&#039;, JSON.stringify(items));
-      };
+      const saveItems = (items) => {
+  localStorage.setItem('labTrackerItems', JSON.stringify(items));
+
+  // Solo enviar los últimos datos registrados (los dos ítems nuevos)
+  const lastItems = items.slice(-2);
+  const formattedData = lastItems.map(item => {
+    const lastHistory = item.history[item.history.length - 1];
+    return {
+      id: item.id,
+      type: item.type,
+      location: lastHistory.location,
+      person: lastHistory.person,
+      notes: lastHistory.notes,
+      timestamp: lastHistory.timestamp
+    };
+  });
+
+  fetch("https://script.google.com/macros/s/AKfycbxPBlWGmZ6QffXDTNk-2I5yZwcMCL_Qwg5pGozY33YlxT_LrPbiFtkf_HxdN3SarJ1gYw/exec", {
+    method: "POST",
+    body: JSON.stringify(formattedData),
+    headers: { "Content-Type": "application/json" }
+  }).then(res => {
+    console.log("Datos guardados en Google Sheets");
+  }).catch(err => {
+    console.error("Error al guardar en Sheets", err);
+  });
+};
+
       
       // Initialize application
       let items = getItems();
@@ -989,3 +1014,4 @@ console.log('Hello Magic App User!');
   </script>
 </body>
 </html>
+
